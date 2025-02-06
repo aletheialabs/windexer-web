@@ -1,8 +1,22 @@
+'use client';
+
 import { motion } from 'framer-motion';
 import { Calendar, BookOpen, Video, MessageCircle } from 'lucide-react';
 
-export default function WorkingGroupPage() {
-  const upcomingEvents = [
+interface Event {
+  title: string;
+  date: string;
+  time: string;
+  description: string;
+}
+
+interface ResearchArea {
+  title: string;
+  description: string;
+}
+
+export default function WorkingGroupPage(): React.ReactElement {
+  const upcomingEvents: Event[] = [
     {
       title: 'IPDM Working Group Call',
       date: '2024-02-01',
@@ -17,19 +31,10 @@ export default function WorkingGroupPage() {
     }
   ];
 
-  const researchAreas = [
-    {
-      title: 'Data Compression',
-      description: 'Advanced techniques for blockchain-specific data structures'
-    },
-    {
-      title: 'Network Topology',
-      description: 'Optimized routing algorithms for mesh networks'
-    },
-    {
-      title: 'State Sync',
-      description: 'Novel approaches to state synchronization'
-    }
+  const researchAreas: ResearchArea[] = [
+    { title: 'Data Compression', description: 'Advanced techniques for blockchain-specific data structures' },
+    { title: 'Network Topology', description: 'Optimized routing algorithms for mesh networks' },
+    { title: 'State Sync', description: 'Novel approaches to state synchronization' }
   ];
 
   return (

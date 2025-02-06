@@ -1,5 +1,5 @@
-// src/lib/mdx.tsx
-import React from 'react';
+// src/lib/mdx.ts
+
 import { serialize } from 'next-mdx-remote/serialize';
 import type { MDXRemoteSerializeResult } from 'next-mdx-remote';
 import rehypeSlug from 'rehype-slug';
@@ -7,23 +7,10 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypePrism from 'rehype-prism-plus';
 import remarkGfm from 'remark-gfm';
 import { DocInfo } from './docs';
+import type { Plugin } from 'unified';
+import type { Root } from 'mdast';
 
-interface PreProps {
-  children: React.ReactNode;
-}
-
-interface CalloutProps {
-  children: React.ReactNode;
-  type?: 'info' | 'warning';
-}
-
-interface ExampleProps {
-  children: React.ReactNode;
-  live?: boolean;
-}
-
-// Define the shape of our MDX processing result
-interface ProcessedContent {
+export interface ProcessedContent {
   source: MDXRemoteSerializeResult;
   frontMatter: {
     title: string;
@@ -31,9 +18,13 @@ interface ProcessedContent {
   };
 }
 
-// Configuration for MDX processing - note the specific type for format
+// Define proper types for our MDX plugins
+type RemarkPlugin = Plugin<[], Root>;
+type RehypePlugin = Plugin<[], Root>;
+
+// Configure MDX options with proper typing
 const mdxOptions = {
-  remarkPlugins: [remarkGfm],
+  remarkPlugins: [remarkGfm] as RemarkPlugin[],
   rehypePlugins: [
     rehypeSlug,
     [rehypeAutolinkHeadings, {
@@ -42,16 +33,16 @@ const mdxOptions = {
       }
     }],
     rehypePrism
-  ],
-  // Remove format as it's not needed and was causing type issues
-} as const;
+  ] as RehypePlugin[]
+};
 
-// Process MDX content with proper error handling and typing
 export async function processMdxContent(content: string): Promise<MDXRemoteSerializeResult> {
   try {
     return await serialize(content, {
       parseFrontmatter: true,
-      mdxOptions
+      mdxOptions: {
+        ...mdxOptions,
+      }
     });
   } catch (error) {
     console.error('Error processing MDX content:', error);
@@ -59,7 +50,6 @@ export async function processMdxContent(content: string): Promise<MDXRemoteSeria
   }
 }
 
-// Process complete documentation with metadata
 export async function processDocContent(doc: DocInfo): Promise<ProcessedContent> {
   try {
     const source = await processMdxContent(doc.content);
@@ -77,16 +67,6 @@ export async function processDocContent(doc: DocInfo): Promise<ProcessedContent>
   }
 }
 
-// Create a separate client component file for MDX components
-// This will be in a separate file: src/components/mdx/MDXComponents.tsx
-// Here we'll just export the type definition
-export interface MDXComponents {
-  pre: React.ComponentType<PreProps>;
-  Callout: React.ComponentType<CalloutProps>;
-  Example: React.ComponentType<ExampleProps>;
-}
-
-// Extract code blocks from MDX content
 export function extractCodeBlocks(content: string): Array<{
   language: string;
   code: string;

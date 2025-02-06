@@ -1,28 +1,39 @@
+// src/app/docs/[[...slug]]/page.tsx
+
 import { Metadata } from 'next';
-import Link from 'next/link';
 import { getDocBySlug, processDocContent } from '@/lib/docs';
 import DocsPage from '@/components/docs/DocsPage';
+import Link from 'next/link';
 
-type Params = {
-  slug?: string[];
-};
+// Both params and searchParams need to be Promises in Next.js 15
+interface PageProps {
+  params: Promise<{ slug?: string[] }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
 
-type Props = {
-  params: Params;
-  searchParams: { [key: string]: string | string[] | undefined };
-};
-
-export default async function Page({ params }: Props) {
-  const slug = params.slug || ['introduction'];
-  
+export default async function Page({ params, searchParams }: PageProps) {
   try {
-    const doc = await getDocBySlug(slug);
+    // Await both params and searchParams
+    const { slug } = await params;
+    await searchParams; // We need to await this even if we don't use it
+    
+    const slugPath = slug || ['introduction'];
+    
+    const doc = await getDocBySlug(slugPath);
     const { source, frontMatter } = await processDocContent(doc);
 
-    return <DocsPage content={source} frontMatter={frontMatter} />;
+    return (
+      <DocsPage 
+        content={source} 
+        frontMatter={frontMatter}
+      />
+    );
   } catch (err) {
-    console.error('Documentation page error:', err instanceof Error ? err.message : 'Unknown error');
-    
+    console.error(
+      "Documentation error:", 
+      err instanceof Error ? err.message : "Unknown error"
+    );
+
     return (
       <div className="min-h-screen bg-gray-900 pt-16">
         <div className="max-w-3xl mx-auto px-4 py-16">
@@ -30,16 +41,11 @@ export default async function Page({ params }: Props) {
             Documentation Not Found
           </h1>
           <p className="text-gray-400">
-            The requested documentation page could not be found. This could be because:
+            We could not find the requested documentation page. Please check the URL and try again.
           </p>
-          <ul className="list-disc list-inside mt-4 text-gray-400">
-            <li>The page has been moved or renamed</li>
-            <li>The URL might be incorrect</li>
-            <li>The documentation is still being written</li>
-          </ul>
           <div className="mt-8">
             <Link 
-              href="/docs" 
+              href="/docs"
               className="text-blue-400 hover:text-blue-300 underline"
             >
               Return to Documentation Home
@@ -51,26 +57,27 @@ export default async function Page({ params }: Props) {
   }
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const slug = params.slug || ['introduction'];
-  
+// Update metadata generation to handle Promise-based searchParams
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   try {
-    const doc = await getDocBySlug(slug);
-    return {
-      title: `${doc.metadata.title} | wIndexer Documentation`,
-      description: doc.metadata.description,
-    };
-  } catch (err) {
-    console.error('Metadata generation error:', err instanceof Error ? err.message : 'Unknown error');
+    const { slug } = await params;
+    await searchParams; // Need to await this even if unused
+    const slugPath = slug || ['introduction'];
+    const doc = await getDocBySlug(slugPath);
     
     return {
+      title: `${doc.metadata.title} | wIndexer Documentation`,
+      description: doc.metadata.description || 'wIndexer Documentation'
+    };
+  } catch {
+    return {
       title: 'Documentation | wIndexer',
-      description: 'wIndexer Documentation',
+      description: 'wIndexer Documentation'
     };
   }
 }
 
-export function generateStaticParams(): Params[] {
+export function generateStaticParams() {
   return [
     { slug: ['introduction'] },
     { slug: ['getting-started'] },

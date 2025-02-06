@@ -9,11 +9,9 @@ export default function HeroSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll();
   
-  // Create parallax effect for background elements
   const backgroundY = useTransform(scrollY, [0, 500], [0, 150]);
   const opacityRange = useTransform(scrollY, [0, 300], [1, 0]);
 
-  // Animation variants for staggered animations
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -91,7 +89,7 @@ export default function HeroSection() {
           variants={itemVariants}
           className="text-6xl md:text-7xl font-bold mb-6"
         >
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-800">
             wIndexer
           </span>
         </motion.h1>
@@ -129,9 +127,9 @@ export default function HeroSection() {
           className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8"
         >
           {[
-            { label: 'Network Throughput', value: '50K+ TPS' },
-            { label: 'Active Nodes', value: '1000+' },
-            { label: 'Data Indexed', value: '2+ PB' }
+            { label: 'Network Throughput', value: 'High' },
+            { label: 'with gossipsub', value: 'P2P Nodes' },
+            { label: 'Ready to Indexe', value: '2+ PB' }
           ].map((stat, i) => (
             <div 
               key={i}
